@@ -1,20 +1,19 @@
-import Image from "next/image";
-import flower from "@/assets/flower.png";
 import NewPasswordForm from "./NewPasswordForm";
 
-const SetNewPassword = () => {
+const VerifyOtpPassword = () => {
   return (
-    <main className="w-[80%] mx-auto flex flex-col items-center justify-center">
-      <div className="flex items-center gap-44 justify-between h-fit">
-        <div>
-          <Image src={flower} alt="logo" width={280} height={280} />
-        </div>
-        <div>
-          <NewPasswordForm />
-        </div>
+    <main className="grid grid-cols-2 h-screen">
+      <div
+        className="w-full h-full bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(/banner.png)`,
+        }}
+      ></div>
+      <div className="flex items-center justify-center">
+        <NewPasswordForm />
       </div>
     </main>
   );
 };
 
-export default SetNewPassword;
+export default VerifyOtpPassword;

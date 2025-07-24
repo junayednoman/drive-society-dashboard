@@ -7,13 +7,20 @@ import {
   EditProfileFormValues,
   editProfileSchema,
 } from "@/validations/profile.validation";
+import handleMutation from "@/utils/handleMutation";
+import { useUpdateProfileMutation } from "@/redux/api/profileApi";
 
 interface EditProfileFormProps {
   defaultValues?: Partial<EditProfileFormValues>;
-  onSubmit: (data: EditProfileFormValues) => void;
 }
 
-const EditProfileForm = ({ defaultValues, onSubmit }: EditProfileFormProps) => {
+const EditProfileForm = ({ defaultValues }: EditProfileFormProps) => {
+  const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+
+  const handleEditProfile = (data: EditProfileFormValues) => {
+    handleMutation(data, updateProfile, "Updating profile...");
+  };
+
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-primary-foreground text-center">
@@ -23,10 +30,10 @@ const EditProfileForm = ({ defaultValues, onSubmit }: EditProfileFormProps) => {
       <AForm<EditProfileFormValues>
         schema={editProfileSchema}
         defaultValues={defaultValues as EditProfileFormValues | undefined}
-        onSubmit={onSubmit}
+        onSubmit={handleEditProfile}
       >
         <AInput
-          name="userName"
+          name="name"
           label="User Name"
           placeholder="Enter your name"
           required
@@ -40,14 +47,13 @@ const EditProfileForm = ({ defaultValues, onSubmit }: EditProfileFormProps) => {
           required
         />
         <AInput
-          name="contactNo"
-          label="Contact no"
-          type="tel"
-          placeholder="Enter your contact number"
+          name="address"
+          label="Address"
+          placeholder="Enter your address"
           required
         />
-        <Button type="submit" className="w-full h-[50px]">
-          Save & Change
+        <Button disabled={isLoading} type="submit" className="w-full h-[50px]">
+          {isLoading ? "Updating..." : "Update Profile"}
         </Button>
       </AForm>
     </div>

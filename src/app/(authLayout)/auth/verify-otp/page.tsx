@@ -6,7 +6,7 @@ const VerifyOtpPassword = () => {
       <div
         className="w-full h-full bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url(https://i.postimg.cc/VvBQ2Jt5/login-image.png)`,
+          backgroundImage: `url(/banner.png)`,
         }}
       ></div>
       <div className="flex items-center justify-center">

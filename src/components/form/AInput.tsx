@@ -44,12 +44,13 @@ export const AInput = <TFieldValues extends FieldValues = FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="text-foreground">
+          <FormLabel htmlFor={label} className="text-foreground">
             {label} {required && <span className="text-destructive">*</span>}
           </FormLabel>
           <FormControl>
             <div className="relative">
               <Input
+                id={label}
                 type={inputType}
                 placeholder={placeholder}
                 className={`border-border text-foreground h-12 rounded-lg pr-10 bg-card ${

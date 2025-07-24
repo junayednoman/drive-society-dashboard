@@ -1,9 +1,15 @@
 import Image from "next/image";
 import loading from "@/assets/loading.svg";
 
-const ASpinner = ({ cl, size = 100 }: { cl?: string; size?: number }) => {
+const ASpinner = ({
+  className,
+  size = 100,
+}: {
+  className?: string;
+  size?: number;
+}) => {
   return (
-    <div className={`${cl} flex items-center justify-center`}>
+    <div className={`${className} flex items-center justify-center`}>
       <Image src={loading} alt="loader" width={size} height={size} />
     </div>
   );

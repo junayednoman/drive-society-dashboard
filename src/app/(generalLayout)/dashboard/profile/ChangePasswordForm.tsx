@@ -4,12 +4,24 @@ import { Button } from "@/components/ui/button";
 import AForm from "@/components/form/AForm";
 import { AInput } from "@/components/form/AInput";
 import {
-  ChangePasswordFormProps,
   ChangePasswordFormValues,
   changePasswordSchema,
 } from "@/validations/auth.validation";
+import { useChangePasswordMutation } from "@/redux/api/authApi";
+import handleMutation from "@/utils/handleMutation";
 
-const ChangePasswordForm = ({ onSubmit }: ChangePasswordFormProps) => {
+const ChangePasswordForm = () => {
+  const [changePassword, { isLoading }] = useChangePasswordMutation();
+
+  const handlePasswordChange = (data: ChangePasswordFormValues) => {
+    const payload = {
+      oldPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    };
+
+    handleMutation(payload, changePassword, "Changing password...");
+  };
+
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-primary-foreground text-center">
@@ -23,7 +35,7 @@ const ChangePasswordForm = ({ onSubmit }: ChangePasswordFormProps) => {
             | ChangePasswordFormValues
             | undefined
         }
-        onSubmit={onSubmit}
+        onSubmit={handlePasswordChange}
       >
         <AInput
           name="currentPassword"
@@ -46,8 +58,8 @@ const ChangePasswordForm = ({ onSubmit }: ChangePasswordFormProps) => {
           placeholder="Confirm new password"
           required
         />
-        <Button type="submit" className="w-full h-[50px]">
-          Save & Change
+        <Button disabled={isLoading} type="submit" className="w-full h-[50px]">
+          {isLoading ? "Changing..." : "Save & Change"}
         </Button>
       </AForm>
     </div>

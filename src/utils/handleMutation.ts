@@ -23,7 +23,7 @@ const handleMutation = async (
     } else {
       toast.error(res?.message || "Operation failed", {
         id: toastId,
-        duration: 2500,
+        duration: 4500,
       });
       if (typeof onFailure === "function") {
         onFailure(res);
@@ -39,7 +39,7 @@ const handleMutation = async (
 
     toast.error(errorMessage, {
       id: toastId,
-      duration: 2500,
+      duration: 4500,
     });
     console.log("api error: ", error);
     if (typeof onFailure === "function") {

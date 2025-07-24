@@ -4,13 +4,11 @@ import Cookies from 'js-cookie';
 import { logOut, setUser } from '../slice/authSlice';
 import { RootState } from '../store';
 
-console.log('process.env.NEXT_PUBLIC_API_BASE_URL', process.env.NEXT_PUBLIC_API_BASE_URL);
-
 const baseQuery = fetchBaseQuery({
   baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
   credentials: "include",
   prepareHeaders: (headers) => {
-    const accessToken = Cookies.get("alainmtzAccessToken");
+    const accessToken = Cookies.get("driveSocietyAccessToken");
 
     // If user have a token set it in the state
     if (accessToken) {

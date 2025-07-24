@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
 import { otpSchema } from "@/validations/auth.validation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 // Infer the form data type from the schema
 type TOtpVerificationFormValues = z.infer<typeof otpSchema>;
@@ -47,9 +49,22 @@ const OtpVerificationForm = () => {
   return (
     <div className="w-[450px]">
       <div className="my-8">
+        <Button
+          type="button"
+          variant="link"
+          className="text-card-foreground p-0 h-auto text-lg font-medium"
+        >
+          <Link href="/auth/login" className="flex items-center gap-3">
+            <ArrowLeft className="!w-5 !h-5" />
+            <span>Back to login</span>
+          </Link>
+        </Button>
+      </div>
+
+      <div className="my-8">
         <h1 className="text-3xl font-bold mb-2">Verify you OTP</h1>
         <p className="text-card-foreground text-sm">
-          Please enter your 6 digit otp
+          Please enter your 6 digit otp to continue
         </p>
       </div>
 
@@ -69,7 +84,7 @@ const OtpVerificationForm = () => {
                     onChange={(value) => field.onChange(value)}
                     className="flex !justify-center"
                   >
-                    <InputOTPGroup className="space-x-2">
+                    <InputOTPGroup className="space-x-2 -ml-4">
                       <InputOTPSlot
                         index={0}
                         className="bg-background border-border text-foreground placeholder:text-muted-foreground h-15 w-15 rounded-lg text-center"

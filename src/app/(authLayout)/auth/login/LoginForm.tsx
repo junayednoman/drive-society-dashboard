@@ -14,6 +14,9 @@ import { setUser } from "@/redux/slice/authSlice";
 import handleMutation from "@/utils/handleMutation";
 import { ACheckbox } from "@/components/form/ACheckbox";
 import Link from "next/link";
+import { toast } from "sonner";
+import { jwtDecode } from "jwt-decode";
+import { TDecodedUser } from "@/interface/global.interface";
 
 const LoginForm = () => {
   const router = useRouter();
@@ -23,7 +26,12 @@ const LoginForm = () => {
   const redirectUrl = searchParams.get("redirect") || "/dashboard";
 
   const onSuccess = (res: any) => {
-    dispatch(setUser({ user: res.data.user, token: res.data.accessToken }));
+    const decodedUser = jwtDecode(res.data.accessToken) as TDecodedUser;
+    if (decodedUser?.role !== "admin")
+      return toast.warning("User does not have the required role (admin)", {
+        duration: 7000,
+      });
+    dispatch(setUser({ user: decodedUser, token: res.data.accessToken }));
     router.push(redirectUrl);
   };
 
@@ -50,8 +58,8 @@ const LoginForm = () => {
       <AForm
         schema={loginSchema}
         defaultValues={{
-          email: "alainmtzadmin@gmail.com",
-          password: "admin123",
+          email: "junayednoman05@gmail.com",
+          password: "envrypted",
           rememberPassword: false,
         }}
         onSubmit={onSubmit}

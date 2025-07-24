@@ -5,43 +5,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProfileHeader from "./ProfileHeader";
 import EditProfileForm from "./EditProfileForm";
 import ChangePasswordForm from "./ChangePasswordForm";
-
-const Profile = () => {
+import { useGetProfileQuery } from "@/redux/api/profileApi";
+import ASpinner from "@/components/ui/ASpinner";
+import AErrorMessage from "@/components/AErrorMessage";
+const ProfileContainer = () => {
   const [activeTab, setActiveTab] = useState("edit-profile");
+  const { data, isLoading, isError, error, refetch } = useGetProfileQuery("");
 
-  // Sample user data - replace with actual data
-  const userData = {
-    name: "Sunan Rahman",
-    role: "Admin",
-    avatar: "/placeholder.svg?height=120&width=120",
-    userName: "Justyna Bronowicka",
-    email: "Camille@gmail.com",
-    contactNo: "+99007007007",
-  };
+  if (isLoading) return <ASpinner size={150} className="py-56" />;
+  if (isError)
+    return (
+      <AErrorMessage
+        className="py-56"
+        message={(error as any)?.data?.message || "Failed to load profile"}
+        onRetry={refetch}
+      />
+    );
 
-  const handleEditProfile = (data: any) => {
-    console.log("Edit Profile Data:", data);
-    // Handle profile update logic here
-  };
-
-  const handleChangePassword = (data: any) => {
-    console.log("Change Password Data:", data);
-    // Handle password change logic here
-  };
-
-  const handleBack = () => {
-    console.log("Navigate back");
-    // Handle navigation back
-  };
+  const profile = data?.data;
 
   return (
     <div className="min-h-screen bg-card p-6 rounded-lg">
       <div className="max-w-2xl mx-auto space-y-8">
         <ProfileHeader
-          name={userData.name}
-          role={userData.role}
-          avatar={userData.avatar}
-          onBack={handleBack}
+          name={profile?.name || ""}
+          role={"Admin"}
+          avatar={profile?.photoUrl || "/placeholder.svg?height=120&width=120"}
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -64,16 +53,15 @@ const Profile = () => {
             <TabsContent value="edit-profile" className="mt-0">
               <EditProfileForm
                 defaultValues={{
-                  userName: userData.userName,
-                  email: userData.email,
-                  contactNo: userData.contactNo,
+                  name: profile?.name || "",
+                  email: profile?.email || "",
+                  address: profile?.address || "",
                 }}
-                onSubmit={handleEditProfile}
               />
             </TabsContent>
 
             <TabsContent value="change-password" className="mt-0">
-              <ChangePasswordForm onSubmit={handleChangePassword} />
+              <ChangePasswordForm />
             </TabsContent>
           </div>
         </Tabs>
@@ -82,4 +70,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default ProfileContainer;

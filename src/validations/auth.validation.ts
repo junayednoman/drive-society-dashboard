@@ -16,10 +16,6 @@ export const changePasswordSchema = z
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
-export interface ChangePasswordFormProps {
-  onSubmit: (data: ChangePasswordFormValues) => void;
-}
-
 export const otpSchema = z.object({
   otp: z
     .string()

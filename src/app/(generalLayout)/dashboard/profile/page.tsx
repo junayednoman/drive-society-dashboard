@@ -1,6 +1,6 @@
 import AContainer from "@/components/AContainer";
 import { Metadata } from "next";
-import Profile from "./Profile";
+import ProfileContainer from "./ProfileContainer";
 
 export const metadata: Metadata = {
   title: "Profile",
@@ -10,7 +10,7 @@ const ProfilePage = () => {
   return (
     <main>
       <AContainer>
-        <Profile />
+        <ProfileContainer />
       </AContainer>
     </main>
   );
