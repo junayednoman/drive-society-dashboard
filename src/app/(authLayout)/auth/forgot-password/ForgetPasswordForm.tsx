@@ -3,16 +3,39 @@
 import * as z from "zod";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-
+import { useRouter } from "next/navigation";
 import AForm from "@/components/form/AForm";
 import { AInput } from "@/components/form/AInput";
 import { forgetPasswordValidation } from "@/validations/auth.validation";
 import { Button } from "@/components/ui/button";
+import handleMutation from "@/utils/handleMutation";
+import Cookies from "js-cookie";
+import { useForgetPasswordMutation } from "@/redux/api/authApi";
 
 const ForgetPasswordForm = () => {
+  const [forgotPassword, { isLoading }] = useForgetPasswordMutation();
+  const router = useRouter();
+
   const onSubmit = async (data: z.infer<typeof forgetPasswordValidation>) => {
-    console.log("Form submitted:", data);
-    // handle reset logic here
+    const payload = { email: data.email };
+
+    // Log payload for debugging
+    console.log("Forgot Password Payload:", payload);
+
+    const onSuccess = (response: any) => {
+      // Set verifyToken in cookie
+      const verifyToken = response?.data?.verifyToken;
+      if (verifyToken) {
+        Cookies.set("grandSportsVerifyToken", verifyToken, {
+          expires: 1 / 24, // Expires in 1 hour, adjust as needed
+          secure: true,
+          sameSite: "strict",
+        });
+      }
+      router.push(`/auth/verify-otp?email=${encodeURIComponent(data.email)}`);
+    };
+
+    handleMutation(payload, forgotPassword, "Sending reset code...", onSuccess);
   };
 
   return (
@@ -47,8 +70,8 @@ const ForgetPasswordForm = () => {
           required
         />
 
-        <Button type="submit" className="h-12 w-full">
-          Send Code
+        <Button disabled={isLoading} type="submit" className="h-12 w-full">
+          {isLoading ? "Sending..." : "Send Code"}
         </Button>
       </AForm>
     </div>

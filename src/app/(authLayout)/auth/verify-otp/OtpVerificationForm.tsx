@@ -20,11 +20,27 @@ import { Button } from "@/components/ui/button";
 import { otpSchema } from "@/validations/auth.validation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  useForgetPasswordMutation,
+  useVerifyOtpMutation,
+} from "@/redux/api/authApi";
+import handleMutation from "@/utils/handleMutation";
+import Cookies from "js-cookie";
 
 // Infer the form data type from the schema
 type TOtpVerificationFormValues = z.infer<typeof otpSchema>;
 
 const OtpVerificationForm = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || "";
+  const token = Cookies.get("grandSportsVerifyToken") || "";
+  console.log("email", email);
+  const [verifyOtp, { isLoading: isVerifying }] = useVerifyOtpMutation();
+  const [forgotPassword, { isLoading: isResending }] =
+    useForgetPasswordMutation();
+
   // Initialize the form with React Hook Form and Zod resolver
   const form = useForm<TOtpVerificationFormValues>({
     resolver: zodResolver(otpSchema),
@@ -35,15 +51,49 @@ const OtpVerificationForm = () => {
 
   // Handle form submission
   const onSubmit = (data: TOtpVerificationFormValues) => {
-    // Simulate an API call
-    console.log("OTP submitted:", data);
-    // Add your OTP verification logic here (e.g., API call)
+    if (!email || !token) {
+      console.error("Email or token missing");
+      return;
+    }
+
+    const payload = { otp: data.otp, email };
+
+    // Log payload for debugging
+    console.log("Verify OTP Payload:", payload);
+
+    const onSuccess = () => {
+      router.push(`/auth/set-new-password?email=${encodeURIComponent(email)}`);
+    };
+
+    handleMutation(
+      { token, credentials: payload },
+      verifyOtp,
+      "Verifying OTP...",
+      onSuccess
+    );
   };
 
-  // Simulate resend code (e.g., after 60 seconds)
+  // Handle resend code
   const handleResendCode = () => {
-    console.log("Resend code requested");
-    // Add your resend logic here (e.g., API call, timer)
+    if (!email) {
+      console.error("Email missing for resend");
+      return;
+    }
+
+    const payload = { email };
+
+    const onSuccess = (response: any) => {
+      const verifyToken = response?.data?.verifyToken;
+      if (verifyToken) {
+        Cookies.set("grandSportsVerifyToken", verifyToken, {
+          expires: 1 / 24, // Expires in 1 hour
+          secure: true,
+          sameSite: "strict",
+        });
+      }
+    };
+
+    handleMutation(payload, forgotPassword, "Resending OTP...", onSuccess);
   };
 
   return (
@@ -62,9 +112,9 @@ const OtpVerificationForm = () => {
       </div>
 
       <div className="my-8">
-        <h1 className="text-3xl font-bold mb-2">Verify you OTP</h1>
+        <h1 className="text-3xl font-bold mb-2">Verify your OTP</h1>
         <p className="text-card-foreground text-sm">
-          Please enter your 6 digit otp to continue
+          Please enter your 6-digit OTP to continue
         </p>
       </div>
 
@@ -128,19 +178,16 @@ const OtpVerificationForm = () => {
                 type="button"
                 onClick={handleResendCode}
                 className="text-primary hover:underline"
+                disabled={isResending}
               >
-                Resend Code
+                {isResending ? "Resending..." : "Resend Code"}
               </button>
             </p>
           </div>
 
           {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full h-12"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? "Verifying..." : "Verify OTP"}
+          <Button type="submit" className="w-full h-12" disabled={isVerifying}>
+            {isVerifying ? "Verifying..." : "Verify OTP"}
           </Button>
         </form>
       </Form>

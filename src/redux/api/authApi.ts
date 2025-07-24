@@ -27,19 +27,32 @@ const authApi = baseApi.injectEndpoints({
     }),
     forgetPassword: builder.mutation({
       query: (credentials) => ({
-        url: "/auth/forgot-password",
+        url: "/auth/forget-password",
         method: "POST",
         body: credentials,
       }),
     }),
+    verifyOtp: builder.mutation({
+      query: ({ token, credentials }) => ({
+        url: "/otp/verify-otp",
+        method: "POST",
+        headers: {
+          "Authorization": `${token}`
+        },
+        body: credentials,
+      }),
+    }),
     resetPassword: builder.mutation({
-      query: (credentials) => ({
+      query: ({ token, credentials }) => ({
         url: "/auth/reset-password",
         method: "POST",
+        headers: {
+          "Authorization": `${token}`
+        },
         body: credentials,
       }),
     })
   }),
 })
 
-export const { useLoginMutation, useLogoutMutation, useChangePasswordMutation } = authApi;
+export const { useLoginMutation, useLogoutMutation, useChangePasswordMutation, useForgetPasswordMutation, useVerifyOtpMutation, useResetPasswordMutation } = authApi;

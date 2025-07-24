@@ -7,6 +7,9 @@ import { AInput } from "@/components/form/AInput";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useResetPasswordMutation } from "@/redux/api/authApi";
+import handleMutation from "@/utils/handleMutation";
+import Cookies from "js-cookie";
 
 // Validation Schema
 const newPasswordSchema = z
@@ -28,11 +31,36 @@ const NewPasswordForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/dashboard";
+  const email = searchParams.get("email") || "";
+  const token = Cookies.get("grandSportsVerifyToken") || "";
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
 
   const onSubmit = async (data: TNewPasswordFormValues) => {
-    console.log("New password submitted:", data);
-    // TODO: call API to update password
-    router.push(redirectUrl);
+    if (!email || !token) {
+      console.error("Email or token missing");
+      return;
+    }
+
+    const payload = {
+      email,
+      newPassword: data.newPassword,
+      confirmPassword: data.confirmPassword,
+    };
+
+    // Log payload for debugging
+    console.log("Reset Password Payload:", payload);
+
+    const onSuccess = () => {
+      Cookies.remove("grandSportsVerifyToken"); // Clear token after use
+      router.push(redirectUrl);
+    };
+
+    handleMutation(
+      { token, credentials: payload },
+      resetPassword,
+      "Resetting password...",
+      onSuccess
+    );
   };
 
   return (
@@ -48,42 +76,46 @@ const NewPasswordForm = () => {
             <span>Back to login</span>
           </Link>
         </Button>
-
-        <div className="my-8">
-          <h1 className="text-3xl font-bold mb-2">Set New Password</h1>
-          <p className="text-card-foreground text-sm">
-            Please enter your new password
-          </p>
-        </div>
-
-        <AForm
-          schema={newPasswordSchema}
-          defaultValues={{
-            newPassword: "",
-            confirmPassword: "",
-          }}
-          onSubmit={onSubmit}
-        >
-          <AInput
-            placeholder="Enter password"
-            name="newPassword"
-            label="New Password"
-            type="password"
-            required
-          />
-          <AInput
-            placeholder="Enter password"
-            name="confirmPassword"
-            label="Confirm Password"
-            type="password"
-            required
-          />
-
-          <Button type="submit" className="h-12 w-full">
-            {"Submit"}
-          </Button>
-        </AForm>
       </div>
+
+      <div className="my-8">
+        <h1 className="text-3xl font-bold mb-2">Set New Password</h1>
+        <p className="text-card-foreground text-sm">
+          Please enter your new password
+        </p>
+      </div>
+
+      <AForm
+        schema={newPasswordSchema}
+        defaultValues={{
+          newPassword: "",
+          confirmPassword: "",
+        }}
+        onSubmit={onSubmit}
+      >
+        <AInput
+          placeholder="Enter password"
+          name="newPassword"
+          label="New Password"
+          type="password"
+          required
+        />
+        <AInput
+          placeholder="Enter password"
+          name="confirmPassword"
+          label="Confirm Password"
+          type="password"
+          required
+        />
+
+        <Button
+          disabled={isLoading || !email || !token}
+          type="submit"
+          className="h-12 w-full"
+        >
+          {isLoading ? "Submitting..." : "Submit"}
+        </Button>
+      </AForm>
     </div>
   );
 };
