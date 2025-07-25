@@ -59,7 +59,7 @@ const ChangePasswordForm = () => {
           required
         />
         <Button disabled={isLoading} type="submit" className="w-full h-[50px]">
-          {isLoading ? "Changing..." : "Save & Change"}
+          {isLoading ? "Saving..." : "Save & Change"}
         </Button>
       </AForm>
     </div>
