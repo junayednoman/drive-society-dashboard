@@ -1,6 +1,6 @@
 import AContainer from "@/components/AContainer";
 import { Metadata } from "next";
-import EarningOverviewTable from "../../sections/dashboard/EarningOverviewTable";
+import EarningOverviewTable from "./_components/EarningOverviewTable";
 
 export const metadata: Metadata = {
   title: "Earning Overview",

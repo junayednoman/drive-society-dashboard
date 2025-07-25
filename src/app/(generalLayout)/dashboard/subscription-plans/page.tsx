@@ -1,6 +1,6 @@
 import AContainer from "@/components/AContainer";
 import { Metadata } from "next";
-import Plans from "./plans/Plans";
+import PlanContainer from "./_components/PlanContainer";
 
 export const metadata: Metadata = {
   title: "Subscription Plans",
@@ -10,7 +10,7 @@ const SubscriptionPlans = () => {
   return (
     <main>
       <AContainer>
-        <Plans />
+        <PlanContainer />
       </AContainer>
     </main>
   );

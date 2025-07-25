@@ -2,7 +2,6 @@
 
 import AForm from "@/components/form/AForm";
 import { AInput } from "@/components/form/AInput";
-import { ASelect } from "@/components/form/ASelect";
 import {
   Dialog,
   DialogContent,
@@ -15,19 +14,31 @@ import {
   CreatePlanFormValues,
   createPlanSchema,
 } from "@/validations/plan.validation";
+import { useAddPlanMutation } from "@/redux/api/subscriptionPlanApi";
+import handleMutation from "@/utils/handleMutation";
+import { useState } from "react";
 
-const CreatePlanModal = ({ children }: { children: React.ReactNode }) => {
-  const billingCycleOptions = [
-    { value: "monthly", label: "Monthly" },
-    { value: "yearly", label: "Yearly" },
-  ];
+interface CreatePlanModalProps {
+  children: React.ReactNode;
+}
+
+const CreatePlanModal = ({ children }: CreatePlanModalProps) => {
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [addPlan, { isLoading }] = useAddPlanMutation();
 
   const handleSubmit = (data: CreatePlanFormValues) => {
-    console.log("Submitted data:", data);
+    const payload = {
+      title: data.title,
+      description: data.description,
+      price: Number(data.price),
+    };
+    handleMutation(payload, addPlan, "Creating plan...", () =>
+      setIsOpen(false)
+    );
   };
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={setIsOpen} open={isOpen}>
       <DialogTrigger>{children}</DialogTrigger>
       <DialogContent className="bg-card">
         <DialogHeader>
@@ -39,27 +50,26 @@ const CreatePlanModal = ({ children }: { children: React.ReactNode }) => {
           className="mt-5"
         >
           <AInput
-            name="planName"
+            name="title"
             label="Subscription Name"
             placeholder="Subscription Name"
             required
           />
-          <ASelect
-            name="billingCycle"
-            label="Billing Cycle"
-            options={billingCycleOptions}
-            placeholder="Select billing cycle"
+          <AInput
+            name="description"
+            label="Description"
+            placeholder="Write Description"
             required
           />
           <AInput
-            name="shortDescription"
-            label="Short Description"
-            placeholder="Write Short Description"
+            name="price"
+            label="Price"
+            placeholder="0"
+            type="number"
             required
           />
-          <AInput name="price" label="Price" placeholder="0" required />
-          <Button type="submit" className="h-12 w-full">
-            Create
+          <Button disabled={isLoading} type="submit" className="h-12 w-full">
+            {isLoading ? "Creating..." : "Create"}
           </Button>
         </AForm>
       </DialogContent>

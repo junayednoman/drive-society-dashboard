@@ -2,16 +2,20 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 
 interface ErrorComponentProps {
-  message?: string;
+  error?: any;
   onRetry: () => void;
   className?: string;
 }
 
 export default function AErrorMessage({
-  message = "Something went wrong. Please try again.",
+  error,
   onRetry,
   className = "!bg-transparent",
 }: ErrorComponentProps) {
+  const message =
+    (error as any)?.data?.message ||
+    (error as any)?.error ||
+    "Something went wrong. Please try again.";
   return (
     <div
       className={`flex flex-col items-center justify-center p-6 !bg-background rounded-lg min-w-full ${className}`}

@@ -14,27 +14,26 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch } from "@/redux/hooks/hooks";
 import { logOut } from "@/redux/slice/authSlice";
 import { navItems } from "@/data/nav.data";
-import { toast } from "sonner";
+import handleMutation from "@/utils/handleMutation";
+import { useLogoutMutation } from "@/redux/api/authApi";
 
 export function NavMain() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   // const [logout] = useLogoutMutation();
   const router = useRouter();
+  const [logout] = useLogoutMutation();
 
   // Determine if a menu item is active based on the current pathname
   const isActive = (url: string) => pathname === url;
 
-  // const onSuccess = () => {
-  //   dispatch(logOut());
-  //   router.push(`/auth/login?redirect=${pathname}`);
-  // };
+  const onSuccess = () => {
+    dispatch(logOut());
+    router.push(`/auth/login?redirect=${pathname}`);
+  };
 
   const handleLogout = async () => {
-    dispatch(logOut());
-    toast.success("Logged out successfully");
-    router.push(`/auth/login?redirect=${pathname}`);
-    // await handleMutation({}, logout, "Logging out...", onSuccess);
+    await handleMutation({}, logout, "Logging out...", onSuccess);
   };
 
   return (

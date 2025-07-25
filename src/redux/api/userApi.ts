@@ -4,7 +4,7 @@ const userApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getUsers: builder.query({
       query: (params) => ({
-        url: "/users",
+        url: "/profiles",
         method: "GET",
         params
       }),

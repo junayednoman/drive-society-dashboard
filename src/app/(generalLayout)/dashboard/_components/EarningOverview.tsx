@@ -7,24 +7,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useState } from "react";
 import { yearOptions } from "@/data/global.data";
 import { AFilterSelect } from "@/components/form/AFilterSelect";
-
-const chartData = [
-  { month: "Jan", value: 10.55 },
-  { month: "Feb", value: 25 },
-  { month: "Mar", value: 40 },
-  { month: "Apr", value: 60 },
-  { month: "May", value: 100.5 },
-  { month: "Jun", value: 70 },
-  { month: "Jul", value: 50 },
-  { month: "Aug", value: 65 },
-  { month: "Sep", value: 45 },
-  { month: "Oct", value: 35 },
-  { month: "Nov", value: 30 },
-  { month: "Dec", value: 40 },
-];
+import { TEarningCharts } from "@/interface/earning.interface";
 
 const chartConfig = {
   value: {
@@ -33,12 +18,19 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function EarningOverview() {
-  const currentYear = new Date().getFullYear();
-  const [year, setYear] = useState(currentYear.toString());
-
-  const minValue = Math.min(...chartData.map((item) => item.value));
-  const maxValue = Math.max(...chartData.map((item) => item.value));
+export function EarningOverview({
+  earningOverview,
+  year,
+  setYear,
+  currentYear,
+}: {
+  earningOverview: TEarningCharts;
+  year: string;
+  setYear: (year: string) => void;
+  currentYear: number;
+}) {
+  const minValue = Math.min(...earningOverview?.map((item) => item.amount));
+  const maxValue = Math.max(...earningOverview?.map((item) => item.amount));
   const yAxisDomain = [Math.floor(minValue), Math.ceil(maxValue)];
 
   return (
@@ -57,7 +49,10 @@ export function EarningOverview() {
       </div>
 
       <ChartContainer config={chartConfig} className="h-[320px] w-full mt-12">
-        <BarChart data={chartData} margin={{ top: 20, left: 12, right: 12 }}>
+        <BarChart
+          data={earningOverview}
+          margin={{ top: 20, left: 12, right: 12 }}
+        >
           <CartesianGrid vertical={false} stroke="#e0e0e0" />
           <XAxis
             dataKey="month"
@@ -76,12 +71,12 @@ export function EarningOverview() {
             cursor={{ fill: "#f5f5f5" }}
             content={
               <ChartTooltipContent
-                formatter={(value) => (
+                formatter={(amount) => (
                   <div className="flex items-center justify-between w-full">
                     <p className="text-muted-foreground font-medium">
                       Earnings:
                     </p>
-                    <p>${value}</p>
+                    <p>${amount}</p>
                   </div>
                 )}
               />
@@ -89,7 +84,7 @@ export function EarningOverview() {
           />
           <Bar
             barSize={35}
-            dataKey="value"
+            dataKey="amount"
             fill="var(--color-value)"
             radius={[4, 4, 0, 0]}
           />

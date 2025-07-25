@@ -11,16 +11,10 @@ import AErrorMessage from "@/components/AErrorMessage";
 const ProfileContainer = () => {
   const [activeTab, setActiveTab] = useState("edit-profile");
   const { data, isLoading, isError, error, refetch } = useGetProfileQuery("");
-
+  console.log("error", error);
   if (isLoading) return <ASpinner size={150} className="py-56" />;
   if (isError)
-    return (
-      <AErrorMessage
-        className="py-56"
-        message={(error as any)?.data?.message || "Failed to load profile"}
-        onRetry={refetch}
-      />
-    );
+    return <AErrorMessage className="py-56" error={error} onRetry={refetch} />;
 
   const profile = data?.data;
 
