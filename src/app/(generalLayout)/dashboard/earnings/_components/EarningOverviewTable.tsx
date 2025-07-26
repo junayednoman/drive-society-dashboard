@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { APagination } from "@/components/ui/APagination";
 import { Input } from "@/components/ui/input";
-import { AFilterSelect } from "@/components/form/AFilterSelect";
 import { Button } from "@/components/ui/button";
 import { EarningDetailsModal } from "@/components/modal/EarningDetailsModal";
 import { useGetEarningsQuery } from "@/redux/api/earningApi";
@@ -26,7 +25,6 @@ const EarningOverviewTable = ({
   const [searchText, setSearchText] = useState<string>("");
   const debouncedSearchText = useDebounce(searchText, 500);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [subscriptionFilter, setSubscriptionFilter] = useState<string>("all");
 
   // Fetch earnings data
   const {
@@ -35,7 +33,11 @@ const EarningOverviewTable = ({
     isError,
     error,
     refetch,
-  } = useGetEarningsQuery("");
+  } = useGetEarningsQuery({
+    page: currentPage,
+    limit,
+    search: debouncedSearchText || undefined,
+  });
   const earnings = earningsResponse?.data?.earningList || [];
   const totalItems = earningsResponse?.meta?.total || 0;
 
@@ -44,7 +46,7 @@ const EarningOverviewTable = ({
     (item: any, index: number) => ({
       id: item._id,
       serial: String(index + 1).padStart(2, "0"),
-      user: item.subscription?.user || "Unknown",
+      user: item?.user || { name: "Unknown", email: "N/A", photoUrl: "" },
       amount: item.amount,
       subscriptionType: "Pro Plan", // Static; adjust if API provides type
       purchaseDate: item.createdAt,
@@ -52,35 +54,12 @@ const EarningOverviewTable = ({
     })
   );
 
-  // Subscription type options
-  const subscriptionTypeOptions = [
-    { value: "all", label: "All" },
-    { value: "Pro Plan", label: "Pro Plan" },
-    // Add more if API provides types
-  ];
-
-  // Filter earnings
-  const filteredEarnings = earningData.filter(
-    (earning) =>
-      earning.user.toLowerCase().includes(debouncedSearchText.toLowerCase()) &&
-      (subscriptionFilter === "all" ||
-        earning.subscriptionType === subscriptionFilter)
-  );
-
-  // Paginate filtered earnings
+  // Paginate earnings (no client-side filtering, as search is server-side)
   const startIndex = (currentPage - 1) * limit;
-  const paginatedEarnings = filteredEarnings.slice(
-    startIndex,
-    startIndex + limit
-  );
+  const paginatedEarnings = earningData.slice(startIndex, startIndex + limit);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(event.target.value);
-    setCurrentPage(1);
-  };
-
-  const handleSubscriptionChange = (value: string) => {
-    setSubscriptionFilter(value);
     setCurrentPage(1);
   };
 
@@ -113,15 +92,6 @@ const EarningOverviewTable = ({
               onChange={handleSearch}
             />
           </div>
-          <div className="relative">
-            <AFilterSelect
-              value={subscriptionFilter}
-              onChange={handleSubscriptionChange}
-              className="w-[100px]"
-              placeholder="Type"
-              options={subscriptionTypeOptions}
-            />
-          </div>
         </div>
       </div>
 
@@ -129,10 +99,9 @@ const EarningOverviewTable = ({
       <div className="rounded-lg overflow-hidden">
         {/* Header Row */}
         <div className="bg-primary px-4 py-4">
-          <div className="grid grid-cols-6 gap-4 items-center text-card">
+          <div className="grid grid-cols-5 gap-4 items-center text-card">
             <div className="font-semibold">Serial</div>
             <div className="font-semibold">User</div>
-            <div className="font-semibold">Subscription Type</div>
             <div className="font-semibold">Amount</div>
             <div className="font-semibold">Purchase Date</div>
             <div className="font-semibold">Action</div>
@@ -155,7 +124,7 @@ const EarningOverviewTable = ({
                 key={earning.id}
                 className="px-4 py-4 hover:bg-accent transition-colors rounded"
               >
-                <div className="grid grid-cols-6 gap-4 items-center">
+                <div className="grid grid-cols-5 gap-4 items-center">
                   <div>
                     <span className="text-primary-foreground">
                       {earning.serial}
@@ -163,29 +132,26 @@ const EarningOverviewTable = ({
                   </div>
                   <div>
                     <span className="text-primary-foreground truncate font-semibold">
-                      {earning.user}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-primary-foreground truncate">
-                      {earning.subscriptionType}
+                      {(earning.user as any).name || "Unknown"}
                     </span>
                   </div>
                   <div>
                     <span className="text-primary-foreground">
-                      ${earning.amount}
+                      ${earning.amount || "0.00"}
                     </span>
                   </div>
                   <div>
                     <span className="text-primary-foreground">
-                      {new Date(earning.purchaseDate).toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        }
-                      )}
+                      {earning.purchaseDate
+                        ? new Date(earning.purchaseDate).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            }
+                          )
+                        : "N/A"}
                     </span>
                   </div>
                   <div>

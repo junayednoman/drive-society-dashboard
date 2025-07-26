@@ -7,11 +7,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { defaultImg } from "@/data/global.data";
+import { EarningTableData } from "@/interface/earning.interface";
 
 interface EarningDetailsModalProps {
-  isOpen: boolean | any;
-  onClose?: () => void;
-  data?: any;
+  isOpen: boolean;
+  onClose: () => void;
+  data?: EarningTableData | null;
 }
 
 export function EarningDetailsModal({
@@ -21,7 +22,7 @@ export function EarningDetailsModal({
 }: EarningDetailsModalProps) {
   if (!data) return null;
 
-  const companyImg = data.companyImage || defaultImg;
+  const companyImg = data.user?.photoUrl || defaultImg;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -40,7 +41,10 @@ export function EarningDetailsModal({
           ></div>
           <div className="text-center space-y-1">
             <p className="text-base font-semibold text-primary-foreground">
-              {data.user}
+              {data.user?.name || "N/A"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {data.user?.email || "N/A"}
             </p>
           </div>
         </div>
@@ -49,22 +53,25 @@ export function EarningDetailsModal({
         <div className="space-y-2 mt-6">
           <p className="text-sm text-foreground">
             <span className="font-medium">Subscription Plan:</span>{" "}
-            {data.subscriptionType}
+            {data.subscriptionType || "N/A"}
           </p>
           <p className="text-sm text-foreground border-t pt-3">
-            <span className="font-medium">Amount:</span> ${data.amount}
+            <span className="font-medium">Amount:</span> $
+            {data.amount || "0.00"}
           </p>
           <p className="text-sm text-foreground border-t pt-3">
-            <span className="font-medium">Transaction ID:</span> $
-            {data.transaction_id}
+            <span className="font-medium">Transaction ID:</span>{" "}
+            {data.transaction_id || "N/A"}
           </p>
           <p className="text-sm text-foreground border-t pt-3">
             <span className="font-medium">Purchase Date:</span>{" "}
-            {new Date(data.purchaseDate).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {data.purchaseDate
+              ? new Date(data.purchaseDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              : "N/A"}
           </p>
         </div>
       </DialogContent>

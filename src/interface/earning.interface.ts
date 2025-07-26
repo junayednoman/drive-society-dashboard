@@ -9,7 +9,12 @@ export interface TEarningChart {
 export interface EarningTableData {
   id: string;
   serial: string;
-  user: string;
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+    photoUrl: string;
+  };
   amount: number;
   subscriptionType: string;
   purchaseDate: string;

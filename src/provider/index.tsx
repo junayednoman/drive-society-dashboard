@@ -8,7 +8,7 @@ import { Toaster } from "sonner";
 const Providers = ({ children }: { children: ReactNode }) => {
   return (
     <Provider store={store}>
-      {children} <Toaster richColors position="top-right" duration={3000} />
+      {children} <Toaster richColors position="top-center" duration={3000} />
     </Provider>
   );
 };

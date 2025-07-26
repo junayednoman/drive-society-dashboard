@@ -12,7 +12,7 @@ const userApi = baseApi.injectEndpoints({
     }),
     changeUseStatus: builder.mutation({
       query: (data) => ({
-        url: `/users/change-status`,
+        url: `/profiles/change-status`,
         method: "PATCH",
         body: data
       }),

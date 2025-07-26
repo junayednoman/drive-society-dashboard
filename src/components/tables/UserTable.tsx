@@ -2,156 +2,33 @@
 
 import { Button } from "@/components/ui/button";
 import { Eye, Lock, Search, Unlock } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { APagination } from "@/components/ui/APagination";
 import { AAlertDialog } from "@/components/modal/AAlertDialog";
 import { Input } from "@/components/ui/input";
 import { UserDetailsModal } from "@/components/modal/UserDetailsModal";
 import { AFilterSelect } from "@/components/form/AFilterSelect";
+import ASpinner from "@/components/ui/ASpinner";
+import AErrorMessage from "@/components/AErrorMessage";
+import {
+  useGetUsersQuery,
+  useChangeUseStatusMutation,
+} from "@/redux/api/userApi";
+import handleMutation from "@/utils/handleMutation";
 
-const userData = [
-  {
-    id: 1,
-    name: "BuildForge",
-    email: "example@gmail.com",
-    renewalDate: "May 10, 2025",
-    status: "Active",
-  },
-  {
-    id: 2,
-    name: "NexStructure",
-    email: "example@gmail.com",
-    renewalDate: "May 10, 2025",
-    status: "Blocked",
-  },
-  {
-    id: 3,
-    name: "UrbanAix",
-    email: "example@gmail.com",
-    renewalDate: "May 10, 2025",
-    status: "Active",
-  },
-  {
-    id: 4,
-    name: "NexStructure",
-    email: "example@gmail.com",
-    renewalDate: "May 10, 2025",
-    status: "Blocked",
-  },
-  {
-    id: 5,
-    name: "TechNova",
-    email: "example@gmail.com",
-    renewalDate: "June 15, 2025",
-    status: "Active",
-  },
-  {
-    id: 6,
-    name: "InnoPeak",
-    email: "example@gmail.com",
-    renewalDate: "July 1, 2025",
-    status: "Blocked",
-  },
-  {
-    id: 7,
-    name: "SkyRise Solutions",
-    email: "example@gmail.com",
-    renewalDate: "April 20, 2025",
-    status: "Active",
-  },
-  {
-    id: 8,
-    name: "GreenTech",
-    email: "example@gmail.com",
-    renewalDate: "August 10, 2025",
-    status: "Blocked",
-  },
-  {
-    id: 9,
-    name: "CoreMatrix",
-    email: "example@gmail.com",
-    renewalDate: "March 5, 2025",
-    status: "Active",
-  },
-  {
-    id: 10,
-    name: "BlueHorizon",
-    email: "example@gmail.com",
-    renewalDate: "September 30, 2025",
-    status: "Active",
-  },
-  {
-    id: 11,
-    name: "PeakPulse",
-    email: "example@gmail.com",
-    renewalDate: "June 25, 2025",
-    status: "Blocked",
-  },
-  {
-    id: 12,
-    name: "SwiftWave",
-    email: "example@gmail.com",
-    renewalDate: "May 18, 2025",
-    status: "Active",
-  },
-  {
-    id: 13,
-    name: "ZenithCorp",
-    email: "example@gmail.com",
-    renewalDate: "July 12, 2025",
-    status: "Blocked",
-  },
-  {
-    id: 14,
-    name: "AeroDyne",
-    email: "example@gmail.com",
-    renewalDate: "April 8, 2025",
-    status: "Active",
-  },
-  {
-    id: 15,
-    name: "FusionTech",
-    email: "example@gmail.com",
-    renewalDate: "October 5, 2025",
-    status: "Blocked",
-  },
-  {
-    id: 16,
-    name: "NovaLink",
-    email: "example@gmail.com",
-    renewalDate: "June 20, 2025",
-    status: "Active",
-  },
-  {
-    id: 17,
-    name: "BrightPath",
-    email: "example@gmail.com",
-    renewalDate: "August 15, 2025",
-    status: "Blocked",
-  },
-  {
-    id: 18,
-    name: "ClearSky",
-    email: "example@gmail.com",
-    renewalDate: "May 25, 2025",
-    status: "Active",
-  },
-  {
-    id: 19,
-    name: "TerraFirm",
-    email: "example@gmail.com",
-    renewalDate: "September 10, 2025",
-    status: "Active",
-  },
-  {
-    id: 20,
-    name: "QuantumEdge",
-    email: "example@gmail.com",
-    renewalDate: "July 30, 2025",
-    status: "Blocked",
-  },
-];
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  photoUrl: string;
+  bio: string | null;
+  address: string | null;
+  status: "active" | "blocked";
+  id: string;
+  createdAt: string;
+  coverPhoto: string | null;
+}
 
 const statusOptions = [
   { value: "all", label: "All" },
@@ -161,7 +38,7 @@ const statusOptions = [
 
 const UserTable = ({
   title,
-  pagination = false,
+  pagination = true,
   limit = 10,
 }: {
   title?: string;
@@ -172,35 +49,29 @@ const UserTable = ({
   const debouncedSearchText = useDebounce(searchText, 500);
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedUser, setSelectedUser] = useState<number | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  // Filter companies based on debounced search text and status filter
-  const filteredCompanies = userData.filter(
-    (user) =>
-      user.name.toLowerCase().includes(debouncedSearchText.toLowerCase()) &&
-      (statusFilter === "all" ||
-        user.status.toLowerCase() === statusFilter.toLowerCase())
-  );
+  const {
+    data: usersResponse,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetUsersQuery({
+    page: currentPage,
+    limit,
+    searchTerm: debouncedSearchText || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+  });
+  const [changeUseStatus, { isLoading: isChangingStatus }] =
+    useChangeUseStatusMutation();
 
-  // Calculate paginated companies based on limit
-  const totalItems = filteredCompanies.length;
-  const startIndex = (currentPage - 1) * limit;
-  const paginatedCompanies = filteredCompanies.slice(
-    startIndex,
-    startIndex + limit
-  );
+  const users: User[] = usersResponse?.data || [];
+  const totalItems = usersResponse?.meta?.total || 0;
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(event.target.value);
-    setCurrentPage(1); // Reset to first page on new search
-  };
-
-  useEffect(() => {
-    console.log("Debounced search text:", debouncedSearchText);
-  }, [debouncedSearchText]);
-
-  const handleBlockUser = (id: number) => {
-    console.log("Block User:", id);
+    setCurrentPage(1);
   };
 
   const handleStatusChange = (value: string) => {
@@ -208,13 +79,27 @@ const UserTable = ({
     setCurrentPage(1);
   };
 
-  const handleViewDetails = (id: number) => {
-    setSelectedUser(id);
+  const handleBlockUser = (user: User) => {
+    const newStatus = user.status === "active" ? "blocked" : "active";
+    const payload = { userId: user._id, status: newStatus };
+    handleMutation(
+      payload,
+      changeUseStatus,
+      `Changing status for ${user.name}...`
+    );
+  };
+
+  const handleViewDetails = (id: string) => {
+    setSelectedUserId(id);
   };
 
   const closeModal = () => {
-    setSelectedUser(null);
+    setSelectedUserId(null);
   };
+
+  if (isLoading) return <ASpinner size={150} className="py-64" />;
+  if (isError)
+    return <AErrorMessage error={error} onRetry={refetch} className="py-64" />;
 
   return (
     <div className="space-y-6 bg-card p-6 px-8 rounded-lg">
@@ -256,33 +141,33 @@ const UserTable = ({
           </div>
         </div>
 
-        {/* Data Rows */}
+        {/* Data Rows or No Data Message */}
         <div className="divide-y divide-border">
-          {paginatedCompanies.length > 0 ? (
-            paginatedCompanies.map((user) => (
+          {users.length > 0 ? (
+            users.map((user) => (
               <div
-                key={user.id}
+                key={user._id}
                 className="px-4 py-3 hover:bg-accent transition-colors rounded"
               >
                 <div className="grid grid-cols-12 gap-2 items-center">
-                  {/* user Name Column */}
+                  {/* User Name Column */}
                   <div className="col-span-3">
                     <span className="text-primary-foreground truncate">
                       {user.name}
                     </span>
                   </div>
 
-                  {/* Subscription Plan Column */}
+                  {/* Email Column */}
                   <div className="col-span-3">
                     <span className="text-primary-foreground truncate">
                       {user.email}
                     </span>
                   </div>
 
-                  {/* Renewal Date Column */}
+                  {/* Registration Date Column */}
                   <div className="col-span-2">
                     <span className="text-primary-foreground">
-                      {new Date(user.renewalDate).toLocaleDateString("en-US", {
+                      {new Date(user.createdAt).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric",
                         year: "numeric",
@@ -294,19 +179,20 @@ const UserTable = ({
                   <div className="col-span-2">
                     <span
                       className={`text-primary-foreground ${
-                        user.status.toLowerCase() === "active"
+                        user.status === "active"
                           ? "text-green-600"
                           : "text-red-600"
                       }`}
                     >
-                      {user.status}
+                      {user.status.charAt(0).toUpperCase() +
+                        user.status.slice(1)}
                     </span>
                   </div>
 
                   {/* Action Column */}
                   <div className="col-span-2 flex items-center justify-end gap-2">
                     <Button
-                      onClick={() => handleViewDetails(user.id)}
+                      onClick={() => handleViewDetails(user._id)}
                       size="icon"
                       variant="outline"
                       className="h-8 w-8 rounded-full border-border hover:bg-card"
@@ -314,33 +200,34 @@ const UserTable = ({
                       <Eye className="h-4 w-4" />
                     </Button>
 
-                    {user.status.toLowerCase() === "active" ? (
-                      <AAlertDialog
-                        onAction={() => handleBlockUser(user.id)}
-                        // Use children instead of trigger if that's the expected prop
-                      >
-                        <Button
-                          size="icon"
-                          className="h-8 w-8 rounded-full bg-destructive/90 hover:bg-destructive text-white"
-                        >
-                          <Lock />
-                        </Button>
-                      </AAlertDialog>
-                    ) : (
+                    <AAlertDialog
+                      onAction={() => handleBlockUser(user)}
+                      title={`Confirm ${
+                        user.status === "active" ? "Block" : "Unblock"
+                      } User`}
+                      description={`Are you sure you want to ${
+                        user.status === "active" ? "block" : "unblock"
+                      } ${user.name}?`}
+                    >
                       <Button
                         size="icon"
-                        className="h-8 w-8 rounded-full bg-green-500 hover:bg-green-600 text-white"
+                        className={`h-8 w-8 rounded-full ${
+                          user.status === "active"
+                            ? "bg-destructive/90 hover:bg-destructive"
+                            : "bg-green-500 hover:bg-green-600"
+                        } text-white`}
+                        disabled={isChangingStatus}
                       >
-                        <Unlock />
+                        {user.status === "active" ? <Lock /> : <Unlock />}
                       </Button>
-                    )}
+                    </AAlertDialog>
                   </div>
                 </div>
               </div>
             ))
           ) : (
             <div className="px-4 py-44 text-center text-muted-foreground">
-              No companies found.
+              No users found
             </div>
           )}
         </div>
@@ -357,7 +244,11 @@ const UserTable = ({
             />
           </div>
         )}
-        <UserDetailsModal isOpen={selectedUser !== null} onClose={closeModal} />
+        <UserDetailsModal
+          isOpen={selectedUserId !== null}
+          onClose={closeModal}
+          user={users.find((user) => user._id === selectedUserId)}
+        />
       </div>
     </div>
   );
