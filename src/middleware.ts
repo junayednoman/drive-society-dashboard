@@ -15,6 +15,8 @@ interface DecodedUser {
 
 export async function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
+  if (pathname === "/")
+    return NextResponse.redirect(new URL("/dashboard", request.url));
 
   const token = request.cookies.get("driveSocietyAccessToken")?.value;
 
@@ -25,12 +27,12 @@ export async function middleware(request: NextRequest) {
     try {
       decodedUser = jwtDecode<DecodedUser>(token);
 
-      const currentTime = Math.floor(Date.now() / 1000)
+      const currentTime = Math.floor(Date.now() / 1000);
       if (decodedUser.exp < currentTime) {
         console.log("Token has expired");
-        decodedUser = null
+        decodedUser = null;
       } else {
-        isAuthenticated = true
+        isAuthenticated = true;
       }
 
       if (isAuthenticated && decodedUser?.role !== "admin") {
@@ -48,7 +50,10 @@ export async function middleware(request: NextRequest) {
   if (DASHBOARD_PATH.test(pathname)) {
     if (!isAuthenticated) {
       const loginUrl = new URL("/auth/login", request.url);
-      loginUrl.searchParams.set("redirect", pathname + (searchParams.toString() ? `?${searchParams}` : ""));
+      loginUrl.searchParams.set(
+        "redirect",
+        pathname + (searchParams.toString() ? `?${searchParams}` : "")
+      );
       return NextResponse.redirect(loginUrl);
     }
     const response = NextResponse.next();
@@ -69,5 +74,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/auth/:path*"],
+  matcher: ["/dashboard/:path*", "/auth/:path*", "/"],
 };
